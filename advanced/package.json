@@ -17,6 +17,11 @@
 		"type": "git",
 		"url": "https://github.com/elkornacio/pg_auto_embeddings.git"
 	},
+	"pnpm": {
+		"onlyBuiltDependencies": [
+			"sqlite3"
+		]
+	},
 	"license": "ISC",
 	"dependencies": {
 		"@types/uuid": "9.0.2",
