@@ -101,7 +101,9 @@ export const createEmbeddingTable = async (pool: Pool, user: string, table: stri
 	console.log(`Creating trigger function: ${table}_trigger_func`);
 	await pool.query(`
         CREATE OR REPLACE FUNCTION ${table}_trigger_func()
-        RETURNS TRIGGER AS $$
+        RETURNS TRIGGER
+        LANGUAGE plpgsql
+        AS $$
         DECLARE
             embedding_text text;
         BEGIN
@@ -112,17 +114,17 @@ export const createEmbeddingTable = async (pool: Pool, user: string, table: stri
                     NULL::record,
                     (
                         SELECT content::jsonb
-                        FROM http_get(
+                        FROM public.http_get(
                             CONCAT(
                                 'http://localhost:3000/embedding?',
                                 'ip=',
-                                urlencode(inet_client_addr()::text),
+                                public.urlencode(inet_client_addr()::text),
                                 '&text=',
-                                urlencode(NEW.text_val),
+                                public.urlencode(NEW.text_val),
                                 '&model=',
-                                urlencode(NEW.model_name),
+                                public.urlencode(NEW.model_name),
                                 '&api_key=',
-                                urlencode(NEW.api_key)
+                                public.urlencode(NEW.api_key)
                             )
                         )
                     )
@@ -131,13 +133,13 @@ export const createEmbeddingTable = async (pool: Pool, user: string, table: stri
                 )
             INTO embedding_text;
 
-            NEW.embedding := embedding_text::vector(128);
+            NEW.embedding := embedding_text::public.vector(128);
             NEW.text_val := '';
             NEW.model_name := '';
             NEW.api_key := '';
             RETURN NEW;
         END;
-        $$ LANGUAGE plpgsql
+        $$;
     `);
 
 	console.log(`Creating trigger: ${table}_trigger`);
