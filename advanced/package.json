@@ -1,0 +1,50 @@
+{
+	"name": "@pgae/server",
+	"version": "1.0.0",
+	"description": "On-premise server for pg_auto_embeddings",
+	"main": "dist/index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "rimraf ./dist && tsc",
+		"format": "prettier --write \"src/**/*.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --fix",
+		"docker-build": "npm run build && docker build -t custom-node-postgres:latest ."
+	},
+	"keywords": [],
+	"author": "Daniel S <ek@elkornacio.com>",
+	"homepage": "https://github.com/elkornacio/pg_auto_embeddings",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/elkornacio/pg_auto_embeddings.git"
+	},
+	"license": "ISC",
+	"dependencies": {
+		"@types/uuid": "9.0.2",
+		"body-parser": "1.20.2",
+		"cors": "2.8.5",
+		"dotenv": "16.3.1",
+		"express": "4.18.2",
+		"openai": "^4.62.0",
+		"pg": "8.11.1",
+		"reflect-metadata": "0.1.13",
+		"sqlite3": "^5.1.7",
+		"typeorm": "0.3.17",
+		"typescript": "5.7.2",
+		"uuid": "9.0.0",
+		"ws": "^8.18.0"
+	},
+	"devDependencies": {
+		"@types/body-parser": "1.19.2",
+		"@types/cors": "2.8.13",
+		"@types/express": "4.17.17",
+		"@types/node": "^22.10.5",
+		"@types/pg": "^8.11.10",
+		"eslint": "8.44.0",
+		"eslint-config-prettier": "8.8.0",
+		"eslint-plugin-jsdoc": "39.6.8",
+		"eslint-plugin-prefer-arrow": "1.2.3",
+		"prettier": "2.8.8",
+		"rimraf": "5.0.1",
+		"ts-node": "10.9.1"
+	}
+}

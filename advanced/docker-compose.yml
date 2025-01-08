@@ -1,0 +1,14 @@
+# docker run -p 5432:5432 -p 3000:3000 custom-node-postgres:latest
+
+version: '3.8'
+
+services:
+    server:
+        image: custom-node-postgres:latest
+        environment:
+            - PG_USERNAME=root_user
+            - PG_PASSWORD=root_pass
+            - DATABASE_SYNC=true
+        ports:
+            - 5432:5432
+            - 3000:3000
