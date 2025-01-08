@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import express from 'express';
 import { Pool } from 'pg';
 import { createEmbeddingTable, createUser, initDatabase } from './sql-utils';
