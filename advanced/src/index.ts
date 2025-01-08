@@ -18,11 +18,11 @@ async function start() {
 	console.log('Starting server');
 
 	const pool = new Pool({
+		host: process.env.PG_HOST,
+		port: Number(process.env.PG_PORT),
 		user: process.env.PG_USERNAME,
-		host: 'localhost',
-		database: 'pgae',
 		password: process.env.PG_PASSWORD,
-		port: 5432,
+		database: 'pgae',
 		max: 3,
 	});
 
@@ -92,8 +92,8 @@ async function start() {
 		}
 	});
 
-	app.listen(3000, () => {
-		console.log('Server is running on port 3000');
+	app.listen(Number(process.env.SERVER_PORT), () => {
+		console.log(`On-premise pg_auto_embeddings server is running on port ${process.env.SERVER_PORT}`);
 	});
 }
 

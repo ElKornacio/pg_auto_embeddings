@@ -6,9 +6,12 @@ services:
     server:
         image: custom-node-postgres:latest
         environment:
+            - PG_HOST=localhost
+            - PG_PORT=5432
             - PG_USERNAME=root_user
             - PG_PASSWORD=root_pass
             - DATABASE_SYNC=true
+            - SERVER_PORT=3000
         ports:
             - 5432:5432
             - 3000:3000
