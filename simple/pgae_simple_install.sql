@@ -104,7 +104,7 @@ BEGIN
 
     EXECUTE format('CREATE SERVER pgae_login_server
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host ''%L'', port ''%L'', dbname ''%L'')', appServer, appPort, 'pgae');
+        OPTIONS (host %L, port %L, dbname %L)', appServer, appPort, 'pgae');
 
     CREATE USER MAPPING FOR CURRENT_USER
     SERVER pgae_login_server
@@ -243,7 +243,7 @@ $$;
 CREATE PROCEDURE pgae_init(modelName TEXT, apiKey TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
-   CALL pgae.pgae_init_internal('pgae.dev', '13070', modelName, apiKey);
+   CALL pgae.pgae_init_internal('pgae.elkornacio.com', '13070', modelName, apiKey);
 END;
 $$;
 

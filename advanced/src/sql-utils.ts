@@ -58,6 +58,9 @@ export const initDatabase = async (pool: Pool) => {
                         )
                 )
     `);
+
+	console.log(`Granting initial_user select access to login view`);
+	await pool.query(`GRANT SELECT ON login TO initial_user`);
 };
 
 export const createUser = async (pool: Pool, user: string, password: string) => {
