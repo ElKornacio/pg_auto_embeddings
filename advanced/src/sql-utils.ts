@@ -85,7 +85,7 @@ export const createEmbeddingTable = async (pool: Pool, user: string, table: stri
 
 	// give update permission to user
 	console.log(`Granting update permission to user: ${user}`);
-	await pool.query(`GRANT UPDATE ON TABLE ${table} TO ${user}`);
+	await pool.query(`GRANT UPDATE, SELECT ON TABLE ${table} TO ${user}`);
 
 	// INSERT INTO public.request_log_test ("current_user", client_ip, client_port, client_app, connection_start, connection_state) SELECT
 	//             usename AS current_user,             -- Current PostgreSQL user

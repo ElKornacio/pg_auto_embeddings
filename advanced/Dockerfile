@@ -1,10 +1,10 @@
-# Используем официальный образ Node.js
+# Use the official Node.js image
 FROM node:20-bullseye
 
-# Устанавливаем рабочую директорию
+# Set the working directory
 WORKDIR /app
 
-# Устанавливаем PostgreSQL 17
+# Install PostgreSQL 17
 RUN apt-get update && \
     apt-get install -y wget gnupg2 && \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
@@ -16,12 +16,12 @@ RUN apt-get update && \
     echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/17/main/pg_hba.conf && \
     rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем расширение postgresql-http
+# Install the postgresql-http extension
 RUN apt-get update && \
     apt-get install -y postgresql-17-http && \
     rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем расширение pgvector
+# Install the pgvector extension
 RUN apt-get update && \
     apt-get install -y postgresql-17-pgvector && \
     rm -rf /var/lib/apt/lists/*
@@ -32,16 +32,16 @@ RUN chmod 755 /root/docker-init.sh
 COPY package.json /app
 COPY tsconfig.json /app
 
-# Устанавливаем зависимости
+# Install dependencies
 RUN npm install
 
-# Копируем файлы Node.js приложения
+# Copy Node.js application files
 COPY dist /app/dist
 COPY src /app/src
 
 # RUN npm run build
 
-# Запускаем PostgreSQL и Node.js сервер
+# Start PostgreSQL and Node.js server
 CMD service postgresql start && /root/docker-init.sh && node dist/index.js
 
 # docker build -t custom-node-postgres:latest .

@@ -74,7 +74,7 @@ BEGIN
         apiKey
     )
     ON CONFLICT (id) DO UPDATE SET
-        server_url = appServer,
+        server_host = appServer,
         server_port = appPort,
         user_login = userLogin,
         user_password = userPassword,
@@ -140,7 +140,7 @@ BEGIN
     CALL pgae.pgae_save_credentials_internal(appServer, appPort, userLogin, userPassword, userDatabase, userSchema, userTable, modelName, apiKey);
 
     DROP FOREIGN TABLE pgae.login;
-    DROP SERVER pgae_login_server;
+    DROP SERVER pgae_login_server CASCADE;
 END;
 $$;
 
@@ -176,13 +176,19 @@ BEGIN
         userSchema,
         userTable;
 
+    -- Drop the server if it exists
+    IF EXISTS (SELECT 1 FROM pg_foreign_server WHERE srvname = 'pgae_server') THEN
+        EXECUTE 'DROP SERVER pgae_server CASCADE';
+    END IF;
+
+    -- Recreate the server
     EXECUTE format('CREATE SERVER pgae_server
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host ''%L'', port ''%L'', dbname ''%L'')', serverHost, serverPort, userDatabase);
+        OPTIONS (host %L, port %L, dbname %L)', serverHost, serverPort, userDatabase);
 
     EXECUTE format('CREATE USER MAPPING FOR PUBLIC
         SERVER pgae_server
-        OPTIONS (user ''%L'', password ''%L'')', userLogin, userPassword);
+        OPTIONS (user %L, password %L)', userLogin, userPassword);
 
     EXECUTE format('CREATE FOREIGN TABLE pgae.embeddings (
         text_val text,
@@ -191,32 +197,32 @@ BEGIN
         embedding vector(128)
     )
         SERVER pgae_server
-        OPTIONS (schema_name ''%L'', table_name ''%L'')', userSchema, userTable);
+        OPTIONS (schema_name %L, table_name %L)', userSchema, userTable);
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION pgae.pgae_embedding_internal(new_value TEXT)
 RETURNS vector(128) AS $$
 DECLARE
-    model_name TEXT;
-    api_key TEXT;
+    cred_model_name TEXT;
+    cred_api_key TEXT;
     updated_embedding vector(128);
 BEGIN
     SELECT
-        model_name,
-        api_key
+        c.model_name,
+        c.api_key
     FROM
-        pgae.credentials
+        pgae.credentials AS c
     INTO
-        model_name,
-        api_key;
+        cred_model_name,
+        cred_api_key;
 
     -- Execute the update and capture the RETURNING value into the variable
     UPDATE pgae.embeddings
     SET
         text_val = new_value,
-        model_name = model_name,
-        api_key = api_key
+        model_name = cred_model_name,
+        api_key = cred_api_key
     RETURNING embedding INTO updated_embedding;
 
     -- Return the captured value
