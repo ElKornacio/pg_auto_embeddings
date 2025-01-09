@@ -8,7 +8,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/elkornacio/pg_auto_embeddings?style=for-the-badge&logo=github&logoColor=white)](https://github.com/elkornacio/pg_auto_embeddings/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/elkornacio/pg_auto_embeddings?style=for-the-badge&logo=github&logoColor=white)](https://github.com/elkornacio/pg_auto_embeddings/stargazers)
 
-`select embedding('text')` for Postgres. Without extensions. Simple, atomic, transaction-safe. Supports OpenAI embeddings out-of-the-box. Installation via SQL file.
+`select embedding('text')` for Postgres. Without extensions. Simple, atomic, transaction-safe. Supports OpenAI embeddings out-of-the-box. Installation via SQL file. Perfect fit for RAG systems.
 
 <img src="assets/screenshot.jpg" alt="pg_auto_embeddings screenshot" width="600"/>
 
