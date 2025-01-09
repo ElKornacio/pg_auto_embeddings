@@ -4,3 +4,5 @@
 advanced/dist
 advanced/node_modules
 advanced/.env
+
+rsync.sh

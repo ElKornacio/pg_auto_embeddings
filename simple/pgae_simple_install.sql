@@ -1,10 +1,10 @@
 -- pg_auto_embeddings v1.2.41
 
 -- 1. Create schema for storing data of pg_auto_embeddings
-CREATE SCHEMA pgae;
+CREATE SCHEMA IF NOT EXISTS pgae;
 
 -- 2. Create table: credentials to store server url and appId/appSecret
-CREATE TABLE pgae.credentials (
+CREATE TABLE IF NOT EXISTS pgae.credentials (
     id int PRIMARY KEY DEFAULT 1,
     server_host TEXT NOT NULL,
     server_port TEXT NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE pgae.credentials (
 );
 
 -- 3. Create table: list of registered auto_embeddings (source_schema, source_table, source_col, target_col, embedding_type)
-CREATE TABLE pgae.auto_embeddings (
+CREATE TABLE IF NOT EXISTS pgae.auto_embeddings (
     source_schema TEXT NOT NULL,
     source_table TEXT NOT NULL,
     source_col TEXT NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE pgae.auto_embeddings (
 -- bool pgae_init_onprem(text appServer, text appPort)
 
 --------- INTERNAL PROCEDURES ---------
-CREATE PROCEDURE pgae.pgae_save_credentials_internal(
+CREATE OR REPLACE PROCEDURE pgae.pgae_save_credentials_internal(
     appServer TEXT,
     appPort TEXT,
     userLogin TEXT,
@@ -86,7 +86,7 @@ BEGIN
 END;
 $$;
 
-CREATE PROCEDURE pgae.pgae_init_credentials_internal(
+CREATE OR REPLACE PROCEDURE pgae.pgae_init_credentials_internal(
     appServer TEXT,
     appPort TEXT,
     modelName TEXT,
@@ -104,7 +104,7 @@ BEGIN
 
     EXECUTE format('CREATE SERVER pgae_login_server
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host %L, port %L, dbname %L)', appServer, appPort, 'pgae');
+        OPTIONS (host %L, port %L, dbname %L, application_name %L)', appServer, appPort, 'pgae', 'pg_auto_embeddings');
 
     CREATE USER MAPPING FOR CURRENT_USER
     SERVER pgae_login_server
@@ -144,7 +144,7 @@ BEGIN
 END;
 $$;
 
-CREATE PROCEDURE pgae.pgae_recreate_fdw_internal()
+CREATE OR REPLACE PROCEDURE pgae.pgae_recreate_fdw_internal()
 LANGUAGE plpgsql AS $$
 DECLARE
     serverHost TEXT;
@@ -184,7 +184,7 @@ BEGIN
     -- Recreate the server
     EXECUTE format('CREATE SERVER pgae_server
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host %L, port %L, dbname %L)', serverHost, serverPort, userDatabase);
+        OPTIONS (host %L, port %L, dbname %L, application_name %L)', serverHost, serverPort, userDatabase, 'pg_auto_embeddings');
 
     EXECUTE format('CREATE USER MAPPING FOR PUBLIC
         SERVER pgae_server
@@ -194,7 +194,7 @@ BEGIN
         text_val text,
         model_name text,
         api_key text,
-        embedding vector(128)
+        embedding double precision[]
     )
         SERVER pgae_server
         OPTIONS (schema_name %L, table_name %L)', userSchema, userTable);
@@ -202,11 +202,11 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION pgae.pgae_embedding_internal(new_value TEXT)
-RETURNS vector(128) AS $$
+RETURNS double precision[] AS $$
 DECLARE
     cred_model_name TEXT;
     cred_api_key TEXT;
-    updated_embedding vector(128);
+    updated_embedding double precision[];
 BEGIN
     SELECT
         c.model_name,
@@ -230,7 +230,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE PROCEDURE pgae.pgae_init_internal(appServer TEXT, appPort TEXT, modelName TEXT, apiKey TEXT)
+CREATE OR REPLACE PROCEDURE pgae.pgae_init_internal(appServer TEXT, appPort TEXT, modelName TEXT, apiKey TEXT)
 LANGUAGE plpgsql AS $$
 DECLARE
     userLogin text;
@@ -246,24 +246,31 @@ END;
 $$;
 
 ---------- PUBLIC PROCEDURES ---------
-CREATE PROCEDURE pgae_init(modelName TEXT, apiKey TEXT)
+CREATE OR REPLACE PROCEDURE pgae_init(modelName TEXT, apiKey TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
    CALL pgae.pgae_init_internal('pgae.elkornacio.com', '13070', modelName, apiKey);
 END;
 $$;
 
-CREATE PROCEDURE pgae_init_onprem(appServer TEXT, appPort TEXT)
+CREATE OR REPLACE PROCEDURE pgae_init_onprem(appServer TEXT, appPort TEXT, modelName TEXT, apiKey TEXT)
 LANGUAGE plpgsql AS $$
 BEGIN
-    CALL pgae.pgae_init_internal(appServer, appPort, 'default', '');
+    CALL pgae.pgae_init_internal(appServer, appPort, modelName, apiKey);
 END;
 $$;
 
 CREATE FUNCTION pgae_embedding(text_val TEXT)
-RETURNS vector(128) AS $$
+RETURNS double precision[] AS $$
 BEGIN
     RETURN pgae.pgae_embedding_internal(text_val);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION pgae_embedding_vec(text_val TEXT)
+RETURNS vector AS $$
+BEGIN
+    RETURN pgae.pgae_embedding_internal(text_val)::vector;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -319,7 +326,7 @@ BEGIN
     EXECUTE format('CREATE OR REPLACE FUNCTION pgae_trigger_func_%I()
     RETURNS TRIGGER AS __
     BEGIN
-        NEW."%I" := pgae.pgae_embedding_internal(NEW."%I");
+        NEW."%I" := pgae.pgae_embedding_internal(NEW."%I")::vector;
         RETURN NEW;
     END;
     __ LANGUAGE plpgsql', trigger_name, target_col, source_col);
@@ -334,4 +341,92 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 5. Create procedure: pgae_delete_auto_embedding(source_schema, source_table, source_col, destination_col);
+CREATE OR REPLACE FUNCTION pgae_delete_auto_embedding(source_schema TEXT, source_table TEXT, source_col TEXT, destination_col TEXT)
+RETURNS BOOLEAN AS $$
+DECLARE
+    trigger_name TEXT;
+BEGIN
+    -- 1. Check if the trigger exists
+    IF NOT EXISTS (
+        SELECT
+            1
+        FROM
+            pgae.auto_embeddings
+        WHERE
+                source_schema = source_schema
+            AND
+                source_table = source_table
+            AND
+                source_col = source_col
+            AND
+                target_col = target_col
+    ) THEN
+        RETURN FALSE;
+    END IF;
+
+    trigger_name := CONCAT(
+        source_schema,
+        '_', source_table,
+        '_', source_col,
+        '_', target_col
+    );
+
+    DELETE FROM
+        pgae.auto_embeddings
+    WHERE
+            source_schema = source_schema
+        AND
+            source_table = source_table
+        AND
+            source_col = source_col
+        AND
+            target_col = target_col;
+
+    EXECUTE format('DROP TRIGGER IF EXISTS pgae_trigger_%I ON %I.%I', trigger_name, source_schema, source_table);
+    EXECUTE format('DROP FUNCTION IF EXISTS pgae_trigger_func_%I()', trigger_name);
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE pgae_self_destroy()
+LANGUAGE plpgsql AS $$
+DECLARE
+    trigger_name TEXT;
+    src_schema TEXT;
+    src_table TEXT;
+    src_col TEXT;
+    tgt_col TEXT;
+BEGIN
+    -- Select all auto-embeddings
+    FOR src_schema, src_table, src_col, tgt_col IN
+        SELECT source_schema, source_table, source_col, target_col
+        FROM pgae.auto_embeddings
+    LOOP
+        -- Construct trigger name
+        trigger_name := CONCAT(src_schema, '_', src_table, '_', src_col, '_', tgt_col);
+
+        -- Drop corresponding trigger functions and triggers
+        EXECUTE format('DROP TRIGGER IF EXISTS pgae_trigger_%I ON %I.%I', trigger_name, src_schema, src_table);
+        EXECUTE format('DROP FUNCTION IF EXISTS pgae_trigger_func_%I()', trigger_name);
+    END LOOP;
+
+    -- Drop FDW server
+    IF EXISTS (SELECT 1 FROM pg_foreign_server WHERE srvname = 'pgae_server') THEN
+        EXECUTE 'DROP SERVER pgae_server CASCADE';
+    END IF;
+
+    -- Drop the whole pgae schema
+    DROP SCHEMA pgae CASCADE;
+
+    -- Drop all pgae public functions
+    DROP PROCEDURE IF EXISTS pgae_init(TEXT, TEXT);
+    DROP PROCEDURE IF EXISTS pgae_init_onprem(TEXT, TEXT, TEXT, TEXT);
+    DROP FUNCTION IF EXISTS pgae_embedding(TEXT);
+    DROP FUNCTION IF EXISTS pgae_embedding_vec(TEXT);
+    DROP FUNCTION IF EXISTS pgae_create_auto_embedding(TEXT, TEXT, TEXT, TEXT);
+    DROP FUNCTION IF EXISTS pgae_delete_auto_embedding(TEXT, TEXT, TEXT, TEXT);
+
+    DROP PROCEDURE IF EXISTS pgae_self_destroy();
+END;
+$$;

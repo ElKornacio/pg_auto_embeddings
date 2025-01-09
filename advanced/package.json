@@ -8,7 +8,8 @@
 		"build": "rimraf ./dist && tsc",
 		"format": "prettier --write \"src/**/*.ts\"",
 		"lint": "eslint \"src/**/*.ts\" --fix",
-		"docker-build": "npm run build && docker build -t custom-node-postgres:latest ."
+		"docker-build": "npm run build && docker build -t pg_auto_embeddings:latest .",
+		"docker-publish": "docker tag pg_auto_embeddings:latest elkornacio/pg_auto_embeddings:latest && docker push elkornacio/pg_auto_embeddings:latest"
 	},
 	"keywords": [],
 	"author": "Daniel S <ek@elkornacio.com>",

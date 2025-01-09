@@ -1,6 +1,9 @@
 # Use the official Node.js image
 FROM node:20-bullseye
 
+# Add a label to the Docker image
+LABEL maintainer="ek@elkornacio.com"
+
 # Set the working directory
 WORKDIR /app
 

@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 
 export const randomLogin = () => {
-	return 'u' + randomUUID().replaceAll('-', '');
+	return 'exu_' + randomUUID().replaceAll('-', '');
 };
 
 export const randomPassword = () => {

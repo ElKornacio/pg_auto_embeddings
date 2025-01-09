@@ -8,6 +8,7 @@ import { LoginEntity } from './entities/Login.entity';
 import { randomLogin, randomTable } from './utils/randoms';
 import { randomPassword } from './utils/randoms';
 import { getEmbedding } from './embeddings';
+import { runControlServer } from './control-server';
 
 async function start() {
 	console.log('Init internal database');
@@ -28,23 +29,20 @@ async function start() {
 		max: 3,
 	});
 
-	await initDatabase(pool);
+	await initDatabase(pool, process.env.SELF_URL);
 
 	const app = express();
 
-	app.get('/', (req, res) => {
-		res.send('Hello, world!');
-	});
-
 	app.get('/embedding', async (req, res) => {
 		try {
-			console.log('Embedding request');
 			const ip = req.query.ip as string;
+			const user = req.query.user as string;
 			const text = req.query.text as string;
 			const model = req.query.model as string;
 			const api_key = req.query.api_key as string;
 
 			console.log('ip: ', ip);
+			console.log('user: ', user);
 			console.log('text: ', text);
 			console.log('model: ', model);
 			console.log('api_key: ', api_key);
@@ -53,7 +51,7 @@ async function start() {
 
 			console.log('embedding: ', embedding);
 
-			res.json({ embedding_vec: embedding });
+			res.json({ embedding_vec: '{' + embedding.join(',') + '}' });
 		} catch (err) {
 			console.error(err);
 			res.status(500).send('Internal server error');
@@ -94,9 +92,21 @@ async function start() {
 		}
 	});
 
-	app.listen(Number(process.env.SERVER_PORT), () => {
-		console.log(`On-premise pg_auto_embeddings server is running on port ${process.env.SERVER_PORT}`);
+	app.listen(Number(process.env.SERVER_PORT), process.env.SERVER_HOST || 'localhost', () => {
+		console.log(
+			`On-premise pg_auto_embeddings server is running on port ${process.env.SERVER_PORT} and host ${
+				process.env.SERVER_HOST || 'localhost'
+			}`,
+		);
 	});
+
+	if (process.env.CONTROL_SERVER_PORT) {
+		await runControlServer(
+			Number(process.env.CONTROL_SERVER_PORT),
+			process.env.CONTROL_SERVER_HOST || 'localhost',
+			pool,
+		);
+	}
 }
 
 start();
