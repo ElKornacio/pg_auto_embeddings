@@ -97,15 +97,15 @@
 
 ### On-Premise Enviroment Variables
 
-- PG_HOST - Host of your database, default `localhost`. That's the host which Node.js server is connected on start. Don't change it unless you know what you're doing.
-- PG_PORT - Port of your database, default `5432`. That's the port which Node.js server is connected on start. Don't change it unless you know what you're doing.
-- PG_USERNAME - Username of your database. You must provide you own value to ensure security.
-- PG_PASSWORD - Password of your database. You must provide you own value to ensure security.
-- SERVER_HOST - Host Node.js proxy server is listening on, default `localhost`.
-- SERVER_PORT - Port Node.js proxy server is listening on, default `3000`.
-- SELF_URL - URL of the Node.js server, default `http://localhost:3000`. All internal requests from Postgres proxy to Node.js are made on this URL.
-- CONTROL_SERVER_HOST - Host Control Server is listening on. When this variable is not provided, Control server does not start.
-- CONTROL_SERVER_PORT - Port Control server is listening on. When this variable is not provided, Control server does not start.
+- `PG_HOST` - Host of your database, default `localhost`. That's the host which Node.js server is connected on start. Don't change it unless you know what you're doing.
+- `PG_PORT` - Port of your database, default `5432`. That's the port which Node.js server is connected on start. Don't change it unless you know what you're doing.
+- `PG_USERNAME` - Username of your database. You must provide you own value to ensure security.
+- `PG_PASSWORD` - Password of your database. You must provide you own value to ensure security.
+- `SERVER_HOST` - Host Node.js proxy server is listening on, default `localhost`.
+- `SERVER_PORT` - Port Node.js proxy server is listening on, default `3000`.
+- `SELF_URL` - URL of the Node.js server, default `http://localhost:3000`. All internal requests from Postgres proxy to Node.js are made on this URL.
+- `CONTROL_SERVER_HOST` - Host Control Server is listening on. When this variable is not provided, Control server does not start.
+- `CONTROL_SERVER_PORT` - Port Control server is listening on. When this variable is not provided, Control server does not start.
 
 ## Contribution and Development
 
