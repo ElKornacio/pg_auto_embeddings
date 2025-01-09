@@ -31,7 +31,7 @@
 
 ## Quick Start
 
-1. Run `simple/pgae_simple_install.sql` on your database.
+1. Run `simple/pgae_simple_install.sql` ([here it is](simple/pgae_simple_install.sql)) on your database.
 2. Call `pgae_init('openai-text-embedding-...', '<api-key>')` to initialize. Provide the model and API key.
 
 ### Usage
@@ -116,7 +116,7 @@
 
 - How to install `pg_auto_embeddings` on a new database?
 
-  Execute SQL code from `simple/pgae_simple_install.sql` on your database.
+  Execute SQL code from `simple/pgae_simple_install.sql` ([here it is](simple/pgae_simple_install.sql)) on your database.
   Then call `pgae_init('<model>', '<api_key>')` to initialize. Provide the model you use for embeddings and your API key.
 
 - Do you support OpenAI embeddings?
