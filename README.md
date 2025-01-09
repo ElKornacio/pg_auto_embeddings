@@ -10,7 +10,7 @@
 
 `select embedding('text')` for Postgres. Without extensions. Simple, atomic, transaction-safe. Supports OpenAI embeddings out-of-the-box. Installation via SQL file.
 
-<img src="assets/screenshot.png" alt="pg_auto_embeddings screenshot" width="600"/>
+<img src="assets/screenshot.svg" alt="pg_auto_embeddings screenshot" width="600"/>
 
 </div>
 
