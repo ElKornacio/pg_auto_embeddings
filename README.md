@@ -8,7 +8,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/elkornacio/pg_auto_embeddings?style=for-the-badge&logo=github&logoColor=white)](https://github.com/elkornacio/pg_auto_embeddings/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/elkornacio/pg_auto_embeddings?style=for-the-badge&logo=github&logoColor=white)](https://github.com/elkornacio/pg_auto_embeddings/stargazers)
 
-`select embedding('text')` for Postgres. Without extensions. Simple, atomic, transaction-safe. Supports OpenAI embeddings out-of-the-box. Installation via SQL file. Perfect fit for RAG systems.
+`select embedding('text')` for Postgres. Without extensions. Simple, atomic, transaction-safe. Supports OpenAI/Anthropic embeddings out-of-the-box. Installation via SQL file. Perfect fit for RAG systems.
 
 <img src="assets/screenshot.jpg" alt="pg_auto_embeddings screenshot" width="600"/>
 
@@ -46,6 +46,16 @@
 - `openai-text-embedding-3-small`
 - `openai-text-embedding-3-large`
 - `openai-text-embedding-ada-002`
+
+#### Voyage (Anthropic):
+
+- `voyage-3-large`
+- `voyage-3`
+- `voyage-3-lite`
+- `voyage-code-3`
+- `voyage-finance-2`
+- `voyage-law-2`
+- `voyage-code-2`
 
 ## On-premise
 
@@ -121,7 +131,11 @@
 
 - Do you support OpenAI embeddings?
 
-  Yes, it's the only supported model right now.
+  Yes, their models are supported out of the box.
+
+- Do you support Voyage (Anthropic) embeddings?
+
+  Yes, their models are supported out of the box.
 
 - How to remove `pg_auto_embeddings` from my database?
 
