@@ -41,15 +41,15 @@ async function start() {
 			const model = req.query.model as string;
 			const api_key = req.query.api_key as string;
 
-			console.log('ip: ', ip);
-			console.log('user: ', user);
+			console.log('ip, user, model: ', ip, user, model);
 			console.log('text: ', text);
 			console.log('model: ', model);
-			console.log('api_key: ', api_key);
+			// show only first 20 characters of api_key
+			console.log('masked api_key: ', api_key.slice(0, 20) + '...');
 
 			const embedding = await getEmbedding(text, model, api_key);
 
-			console.log('embedding: ', embedding);
+			console.log('embedding.length: ', embedding.length);
 
 			res.json({ embedding_vec: '{' + embedding.join(',') + '}' });
 		} catch (err) {
